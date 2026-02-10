@@ -1,4 +1,26 @@
-# 🦞 OpenClaw — Personal AI Assistant
+# 🦞🔒 OpenClaw Safe — Security-Hardened Fork
+
+> **This is a security-focused fork of [OpenClaw](https://github.com/openclaw/openclaw)** that implements additional protections for sandboxed agents, preventing API key leakage and providing secure gateway tool patterns.
+
+## Security Enhancements
+
+| Feature | Description |
+|---------|-------------|
+| **Config Redaction** | CLI `config get` redacts resolved secrets using `__OPENCLAW_REDACTED__` |
+| **Gateway Tool Pattern** | API tools (Notion, etc.) inject credentials server-side — agents never see keys |
+| **Safe Sandbox Defaults** | Gateway tools added to default allow list for secure API access |
+
+See [openclaw/openclaw#13683](https://github.com/openclaw/openclaw/issues/13683) for the upstream security discussion.
+
+### Staying Updated
+
+```bash
+# Sync with upstream
+git fetch upstream
+git merge upstream/main
+```
+
+---
 
 <p align="center">
     <picture>
