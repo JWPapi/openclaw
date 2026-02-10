@@ -27,6 +27,7 @@ export const DEFAULT_TOOL_ALLOW = [
   "openai",
   "github",
   "linear",
+  "elevenlabs",
   // Session management
   "sessions_list",
   "sessions_history",

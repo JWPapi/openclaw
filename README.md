@@ -142,6 +142,7 @@ These tools already handle API keys server-side in upstream OpenClaw:
 - [x] `openai` — Direct OpenAI API (completions, embeddings, moderation, transcribe)
 - [x] `github` — GitHub API (repos, issues, PRs, gists, search)
 - [x] `linear` — Linear API (issues, projects, teams, search)
+- [x] `elevenlabs` — ElevenLabs full API (TTS, voices, speech-to-speech, models, history)
 - [ ] `slack_api` — Slack Web API (beyond messaging)
 - [ ] `google_calendar` — Google Calendar API
 - [ ] `google_drive` — Google Drive API
