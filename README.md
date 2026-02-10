@@ -7,6 +7,7 @@
 When running AI agents in sandbox mode, there's a critical security gap: **agents can extract your API secrets**.
 
 Even with Docker isolation enabled, a sandboxed agent could:
+
 ```bash
 # Agent runs this in sandbox
 openclaw config get services.notion.apiKey
@@ -20,14 +21,18 @@ This happens because environment variable substitution (`${NOTION_API_KEY}`) res
 This fork implements a **defense-in-depth** approach:
 
 ### 1. Config Redaction
+
 All sensitive values are redacted before being exposed to agents:
+
 ```bash
 openclaw config get services.notion.apiKey
 # Returns: "__OPENCLAW_REDACTED__"
 ```
 
 ### 2. Gateway Tool Pattern
+
 Instead of giving agents direct API access, we provide **gateway tools** that:
+
 - Accept parameters from the agent (search query, page ID, etc.)
 - Inject credentials **server-side** from `process.env`
 - Return only the results — agent never sees the key
@@ -40,7 +45,9 @@ Instead of giving agents direct API access, we provide **gateway tools** that:
 ```
 
 ### 3. Safe Sandbox Defaults
+
 Gateway tools that handle secrets server-side are enabled by default:
+
 - `web_search` — Brave/Perplexity search (API keys server-side)
 - `web_fetch` — Firecrawl scraping (API key server-side)
 - `tts` — ElevenLabs text-to-speech (API key server-side)
@@ -49,11 +56,11 @@ Gateway tools that handle secrets server-side are enabled by default:
 
 ## Quick Comparison
 
-| Scenario | Upstream OpenClaw | OpenClaw Safe |
-|----------|-------------------|---------------|
-| `config get apiKey` | Returns actual key | Returns `__REDACTED__` |
-| Agent uses Notion | Needs key in sandbox | Gateway injects key |
-| Prompt injection | Could exfiltrate secrets | Secrets never exposed |
+| Scenario            | Upstream OpenClaw        | OpenClaw Safe          |
+| ------------------- | ------------------------ | ---------------------- |
+| `config get apiKey` | Returns actual key       | Returns `__REDACTED__` |
+| Agent uses Notion   | Needs key in sandbox     | Gateway injects key    |
+| Prompt injection    | Could exfiltrate secrets | Secrets never exposed  |
 
 ## Installation
 
@@ -111,6 +118,45 @@ pnpm build
 ## Upstream Discussion
 
 See [openclaw/openclaw#13683](https://github.com/openclaw/openclaw/issues/13683) for the security discussion with the upstream maintainers.
+
+## Roadmap: Secure Gateway Tools
+
+### Core Security
+
+- [x] **Config redaction** — Prevent secret leakage via `config get`
+- [x] **Sandbox allow list** — Safe defaults for gateway tools
+- [ ] **Audit logging** — Log all tool calls with redacted parameters
+
+### Already Secure (upstream)
+
+These tools already handle API keys server-side in upstream OpenClaw:
+
+- [x] `web_search` — Brave, Perplexity, OpenRouter, xAI keys
+- [x] `web_fetch` — Firecrawl API key
+- [x] `tts` — ElevenLabs API key
+- [x] `image` — OpenAI/provider API keys
+
+### New Gateway Tools (this fork)
+
+- [x] `notion` — Notion API (search, pages, databases)
+- [x] `openai` — Direct OpenAI API (completions, embeddings, moderation, transcribe)
+- [x] `github` — GitHub API (repos, issues, PRs, gists, search)
+- [x] `linear` — Linear API (issues, projects, teams, search)
+- [ ] `slack_api` — Slack Web API (beyond messaging)
+- [ ] `google_calendar` — Google Calendar API
+- [ ] `google_drive` — Google Drive API
+- [ ] `airtable` — Airtable API
+- [ ] `todoist` — Todoist API
+- [ ] `spotify` — Spotify API (playback, playlists)
+
+### Future Considerations
+
+- [ ] **Generic REST proxy** — Config-driven API tool for any REST API
+- [ ] **OAuth token refresh** — Secure token management for OAuth APIs
+- [ ] **Rate limiting** — Prevent abuse of proxied APIs
+- [ ] **Per-tool permissions** — Fine-grained access control
+
+Want to contribute? Pick a tool from the list and follow the pattern in `src/agents/tools/notion-tool.ts`!
 
 ---
 

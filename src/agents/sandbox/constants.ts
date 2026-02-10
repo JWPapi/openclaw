@@ -24,6 +24,9 @@ export const DEFAULT_TOOL_ALLOW = [
   "web_fetch",
   "tts",
   "notion",
+  "openai",
+  "github",
+  "linear",
   // Session management
   "sessions_list",
   "sessions_history",
