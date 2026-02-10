@@ -74,6 +74,17 @@ Gateway tools that handle secrets server-side are enabled by default:
 
 This is the security tradeoff: agents gain access to external APIs without ever being able to leak or modify credentials.
 
+### Remaining Risk: Personal Data Exposure
+
+With API keys secured, the main security risk shifts to **what data the agent can access through those APIs**. The agent can't steal your Notion key, but it can read every page in your Notion workspace. Be cautious about:
+
+- **Messaging channels** — The agent reads incoming messages. Sensitive conversations (banking, medical, legal) are visible to the model.
+- **Connected APIs** — A Notion/GitHub/Linear gateway gives the agent read access to everything the API key can reach. Use scoped tokens with minimal permissions.
+- **File system** — In sandbox mode the agent has access to its workspace. Don't mount directories containing sensitive files.
+- **Prompt injection** — A malicious message from another user could instruct the agent to exfiltrate data it has legitimate access to (e.g., summarize your Notion and post it somewhere).
+
+**Rule of thumb:** Treat the agent like a new employee — give it access only to what it needs, not everything you have.
+
 ![Gateway Security Demo](docs/assets/gateway-security-demo.png)
 
 _The bot confirms it cannot see API keys — credentials are injected server-side._
