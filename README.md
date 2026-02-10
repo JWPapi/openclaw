@@ -62,6 +62,16 @@ Gateway tools that handle secrets server-side are enabled by default:
 | Agent uses Notion   | Needs key in sandbox     | Gateway injects key    |
 | Prompt injection    | Could exfiltrate secrets | Secrets never exposed  |
 
+## Limitations
+
+**The bot cannot configure its own API keys via chat.** This is intentional:
+
+- API keys are read from `process.env` on the server, not from agent-writable config
+- The agent never sees actual key values — it only uses them indirectly via gateway tools
+- All key management requires admin SSH access to the server
+
+This is the security tradeoff: agents gain access to external APIs without ever being able to leak or modify credentials. If you need self-service key configuration, you'd need to build a separate authenticated admin interface.
+
 ## Installation
 
 ```bash
