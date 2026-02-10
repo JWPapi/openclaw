@@ -2,23 +2,115 @@
 
 > **This is a security-focused fork of [OpenClaw](https://github.com/openclaw/openclaw)** that implements additional protections for sandboxed agents, preventing API key leakage and providing secure gateway tool patterns.
 
-## Security Enhancements
+## The Problem
 
-| Feature | Description |
-|---------|-------------|
-| **Config Redaction** | CLI `config get` redacts resolved secrets using `__OPENCLAW_REDACTED__` |
-| **Gateway Tool Pattern** | API tools (Notion, etc.) inject credentials server-side — agents never see keys |
-| **Safe Sandbox Defaults** | Gateway tools added to default allow list for secure API access |
+When running AI agents in sandbox mode, there's a critical security gap: **agents can extract your API secrets**.
 
-See [openclaw/openclaw#13683](https://github.com/openclaw/openclaw/issues/13683) for the upstream security discussion.
+Even with Docker isolation enabled, a sandboxed agent could:
+```bash
+# Agent runs this in sandbox
+openclaw config get services.notion.apiKey
+# Returns: "sk-secret-xxxxx" (the actual key!)
+```
 
-### Staying Updated
+This happens because environment variable substitution (`${NOTION_API_KEY}`) resolves to actual values before being returned to the agent.
+
+## Our Solution
+
+This fork implements a **defense-in-depth** approach:
+
+### 1. Config Redaction
+All sensitive values are redacted before being exposed to agents:
+```bash
+openclaw config get services.notion.apiKey
+# Returns: "__OPENCLAW_REDACTED__"
+```
+
+### 2. Gateway Tool Pattern
+Instead of giving agents direct API access, we provide **gateway tools** that:
+- Accept parameters from the agent (search query, page ID, etc.)
+- Inject credentials **server-side** from `process.env`
+- Return only the results — agent never sees the key
+
+```
+┌─────────────┐     parameters      ┌─────────────┐     + API key      ┌─────────────┐
+│   Agent     │ ──────────────────► │   Gateway   │ ──────────────────► │  Notion API │
+│  (sandbox)  │ ◄────────────────── │  (server)   │ ◄────────────────── │             │
+└─────────────┘     results only    └─────────────┘     response        └─────────────┘
+```
+
+### 3. Safe Sandbox Defaults
+Gateway tools that handle secrets server-side are enabled by default:
+- `web_search` — Brave/Perplexity search (API keys server-side)
+- `web_fetch` — Firecrawl scraping (API key server-side)
+- `tts` — ElevenLabs text-to-speech (API key server-side)
+- `notion` — Notion API (API key server-side)
+- `image` — Image generation (API key server-side)
+
+## Quick Comparison
+
+| Scenario | Upstream OpenClaw | OpenClaw Safe |
+|----------|-------------------|---------------|
+| `config get apiKey` | Returns actual key | Returns `__REDACTED__` |
+| Agent uses Notion | Needs key in sandbox | Gateway injects key |
+| Prompt injection | Could exfiltrate secrets | Secrets never exposed |
+
+## Installation
 
 ```bash
+# Clone this fork instead of upstream
+git clone https://github.com/JWPapi/openclaw.git
+cd openclaw
+pnpm install
+pnpm build
+
+# Run gateway
+./dist/entry.js gateway
+```
+
+## Adding New Secure API Tools
+
+Use the gateway tool pattern (see `src/agents/tools/notion-tool.ts`):
+
+```typescript
+export function createMyApiTool(): AnyAgentTool {
+  return {
+    name: "my_api",
+    description: "Interact with MyAPI. Credentials handled securely.",
+    parameters: MyApiSchema,
+    execute: async (_toolCallId, args) => {
+      // Get key server-side — agent never sees this
+      const apiKey = process.env.MY_API_KEY;
+
+      // Make API call with injected credentials
+      const result = await myApiRequest(args, apiKey);
+
+      // Return only results
+      return { content: [{ type: "text", text: JSON.stringify(result) }] };
+    },
+  };
+}
+```
+
+Then register in `src/agents/openclaw-tools.ts` and add to `DEFAULT_TOOL_ALLOW` in `src/agents/sandbox/constants.ts`.
+
+## Staying Updated
+
+```bash
+# Add upstream remote (one time)
+git remote add upstream https://github.com/openclaw/openclaw.git
+
 # Sync with upstream
 git fetch upstream
 git merge upstream/main
+
+# Rebuild
+pnpm build
 ```
+
+## Upstream Discussion
+
+See [openclaw/openclaw#13683](https://github.com/openclaw/openclaw/issues/13683) for the security discussion with the upstream maintainers.
 
 ---
 
