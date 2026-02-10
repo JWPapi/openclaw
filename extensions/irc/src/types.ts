@@ -1,9 +1,18 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk";
+import type {
+  BlockStreamingCoalesceConfig,
+  DmConfig,
+  DmPolicy,
+  GroupPolicy,
+  GroupToolPolicyBySenderConfig,
+  GroupToolPolicyConfig,
+  MarkdownConfig,
+  OpenClawConfig,
+} from "openclaw/plugin-sdk";
 
 export type IrcChannelConfig = {
   requireMention?: boolean;
-  tools?: unknown;
-  toolsBySender?: Record<string, unknown>;
+  tools?: GroupToolPolicyConfig;
+  toolsBySender?: GroupToolPolicyBySenderConfig;
   skills?: string[];
   enabled?: boolean;
   allowFrom?: Array<string | number>;
@@ -31,36 +40,21 @@ export type IrcAccountConfig = {
   password?: string;
   passwordFile?: string;
   nickserv?: IrcNickServConfig;
-  dmPolicy?: "pairing" | "open" | "allowlist" | "disabled";
+  dmPolicy?: DmPolicy;
   allowFrom?: Array<string | number>;
-  groupPolicy?: "open" | "allowlist" | "disabled";
+  groupPolicy?: GroupPolicy;
   groupAllowFrom?: Array<string | number>;
   groups?: Record<string, IrcChannelConfig>;
   channels?: string[];
   mentionPatterns?: string[];
-  markdown?: {
-    enabled?: boolean;
-    tables?: {
-      mode?: "code" | "plain";
-    };
-  };
+  markdown?: MarkdownConfig;
   historyLimit?: number;
   dmHistoryLimit?: number;
-  dms?: Record<
-    string,
-    {
-      tools?: unknown;
-      skills?: string[];
-      systemPrompt?: string;
-    }
-  >;
+  dms?: Record<string, DmConfig>;
   textChunkLimit?: number;
   chunkMode?: "length" | "newline";
   blockStreaming?: boolean;
-  blockStreamingCoalesce?: {
-    minChars?: number;
-    idleMs?: number;
-  };
+  blockStreamingCoalesce?: BlockStreamingCoalesceConfig;
   responsePrefix?: string;
   mediaMaxMb?: number;
 };

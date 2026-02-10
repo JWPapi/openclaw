@@ -309,12 +309,12 @@ export const ircPlugin: ChannelPlugin<ResolvedIrcAccount, IrcProbe> = {
       lastStopAt: null,
       lastError: null,
     },
-    buildChannelSummary: ({ snapshot }) => ({
+    buildChannelSummary: ({ account, snapshot }) => ({
       configured: snapshot.configured ?? false,
-      host: snapshot.host,
+      host: account.host,
       port: snapshot.port,
-      tls: snapshot.tls,
-      nick: snapshot.nick,
+      tls: account.tls,
+      nick: account.nick,
       running: snapshot.running ?? false,
       lastStartAt: snapshot.lastStartAt ?? null,
       lastStopAt: snapshot.lastStopAt ?? null,

@@ -234,7 +234,7 @@ export async function handleIrcInbound(params: {
     channel: CHANNEL_ID,
     accountId: account.accountId,
     peer: {
-      kind: message.isGroup ? "group" : "dm",
+      kind: message.isGroup ? "group" : "direct",
       id: peerId,
     },
   });
