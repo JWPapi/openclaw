@@ -68,9 +68,15 @@ Gateway tools that handle secrets server-side are enabled by default:
 
 - API keys are read from `process.env` on the server, not from agent-writable config
 - The agent never sees actual key values — it only uses them indirectly via gateway tools
-- All key management requires admin SSH access to the server
+- Key setup requires either:
+  - Running `openclaw onboard` on the server (interactive wizard)
+  - Manually editing `/root/.openclaw/.env` via SSH
 
-This is the security tradeoff: agents gain access to external APIs without ever being able to leak or modify credentials. If you need self-service key configuration, you'd need to build a separate authenticated admin interface.
+This is the security tradeoff: agents gain access to external APIs without ever being able to leak or modify credentials.
+
+![Gateway Security Demo](docs/assets/gateway-security-demo.png)
+
+_The bot confirms it cannot see API keys — credentials are injected server-side._
 
 ## Installation
 
